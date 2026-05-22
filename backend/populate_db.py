@@ -4,7 +4,8 @@ import django
 from datetime import datetime, timedelta
 
 # Configura o ambiente Django
-sys.path.insert(0, '/home/halvesromano/code/bolao_copa_do_mundo/backend')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
