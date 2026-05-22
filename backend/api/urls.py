@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import UserViewSet, TimeViewSet, FaseViewSet, JogoViewSet, PalpiteViewSet, RankingViewSet, GrupoPrivadoViewSet, AlterarSenhaView
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet)
+router.register(r'users', UserViewSet, basename='user')
 router.register(r'times', TimeViewSet)
 router.register(r'fases', FaseViewSet)
 router.register(r'jogos', JogoViewSet)
