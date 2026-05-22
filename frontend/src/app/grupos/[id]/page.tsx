@@ -121,7 +121,7 @@ export default function RankingGrupoPage() {
                     <div>
                       <h3 className="font-bold text-lg text-white flex items-center gap-2">
                         {jogador.username}
-                        {jogador.is_criador && <Crown className="w-4 h-4 text-yellow-400" title="Criador do grupo" />}
+                        {jogador.is_criador && <span title="Criador do grupo"><Crown className="w-4 h-4 text-yellow-400" /></span>}
                         {isCurrentUser && <span className="text-xs bg-wc-cyan text-black px-2 py-0.5 rounded-full">Você</span>}
                       </h3>
                     </div>

@@ -237,7 +237,7 @@ export default function GruposPage() {
                       <div>
                         <h3 className="font-bold text-white text-lg flex items-center gap-2">
                           {grupo.nome}
-                          {grupo.is_criador && <Crown className="w-4 h-4 text-yellow-400" title="Você é o criador" />}
+                          {grupo.is_criador && <span title="Você é o criador"><Crown className="w-4 h-4 text-yellow-400" /></span>}
                         </h3>
                         <p className="text-slate-400 text-sm">{grupo.total_membros} membro{grupo.total_membros !== 1 ? 's' : ''}</p>
                       </div>
