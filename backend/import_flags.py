@@ -11,22 +11,6 @@ from api.models import Time
 
 flags_dir = os.path.join(BASE_DIR, 'flags')
 
-# Mapeamento de nomes de arquivos para siglas no banco (caso sejam diferentes)
-mapa_siglas = {
-    'AFS': 'RSA', # África do Sul
-    'ALE': 'GER', # Alemanha
-    'ARA': 'KSA', # Arábia Saudita
-    'CMA': 'CMR', # Camarões
-    'EGI': 'EGY', # Egito
-    'EUA': 'USA', # Estados Unidos
-    'GAN': 'GHA', # Gana
-    'HOL': 'NED', # Holanda
-    'ING': 'ENG', # Inglaterra
-    'IRA': 'IRN', # Irã
-    'JAP': 'JPN', # Japão
-    'SUE': 'SWE', # Suécia
-}
-
 atualizados = 0
 nao_encontrados = []
 
@@ -35,14 +19,11 @@ for filename in os.listdir(flags_dir):
         filepath = os.path.join(flags_dir, filename)
         sigla_arquivo = filename.replace('.svg', '').upper()
         
-        # Resolve a sigla usando o mapa ou a própria sigla do arquivo
-        sigla_busca = mapa_siglas.get(sigla_arquivo, sigla_arquivo)
-        
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 svg_content = f.read()
                 
-            time = Time.objects.filter(sigla=sigla_busca).first()
+            time = Time.objects.filter(sigla=sigla_arquivo).first()
             if time:
                 time.bandeira_svg = svg_content
                 time.save()
