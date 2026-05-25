@@ -18,9 +18,11 @@ interface MatchCardProps {
   timeFora: Team;
   dataHora: string;
   fase: string;
+  grupoLabel?: string;
   golCasa?: number | null;
   golFora?: number | null;
   onPalpiteSubmit?: (matchId: number, golCasa: number, golFora: number) => void;
+  onGolChange?: (matchId: number, golCasa: number | "", golFora: number | "") => void;
 }
 
 export function MatchCard({
@@ -29,13 +31,25 @@ export function MatchCard({
   timeFora,
   dataHora,
   fase,
+  grupoLabel,
   golCasa: initialGolCasa = null,
   golFora: initialGolFora = null,
   onPalpiteSubmit,
+  onGolChange,
 }: MatchCardProps) {
   const [golCasa, setGolCasa] = React.useState<number | "">(initialGolCasa ?? "");
   const [golFora, setGolFora] = React.useState<number | "">(initialGolFora ?? "");
   const isLocked = new Date(dataHora).getTime() - new Date().getTime() <= 60 * 60 * 1000;
+
+  const handleGolCasaChange = (value: number | "") => {
+    setGolCasa(value);
+    onGolChange?.(id, value, golFora);
+  };
+
+  const handleGolForaChange = (value: number | "") => {
+    setGolFora(value);
+    onGolChange?.(id, golCasa, value);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +60,12 @@ export function MatchCard({
 
   return (
     <Card className="overflow-hidden bg-white/5 backdrop-blur-md border-white/10 hover:border-white/20 transition-all duration-300 shadow-xl rounded-2xl">
-      <CardHeader className="p-4 pb-2 border-b border-white/5 bg-black/40 text-center">
+      <CardHeader className="p-4 pb-2 border-b border-white/5 bg-black/40 text-center relative">
+        {grupoLabel && (
+          <span className="absolute top-2 right-3 text-[10px] font-bold text-black bg-yellow-400 px-2 py-0.5 rounded-full uppercase tracking-wide">
+            {grupoLabel}
+          </span>
+        )}
         <span className="text-xs font-semibold text-wc-cyan uppercase tracking-wider">{fase}</span>
         <span className="text-xs text-slate-400 block mt-1">
           {format(new Date(dataHora), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
@@ -71,7 +90,7 @@ export function MatchCard({
               min="0"
               max="20"
               value={golCasa}
-              onChange={(e) => setGolCasa(e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) => handleGolCasaChange(e.target.value === "" ? "" : Number(e.target.value))}
               disabled={isLocked}
               className="w-14 h-14 text-center text-xl font-bold bg-black/40 border-white/10 focus:border-wc-cyan focus:ring-wc-cyan rounded-xl"
             />
@@ -81,7 +100,7 @@ export function MatchCard({
               min="0"
               max="20"
               value={golFora}
-              onChange={(e) => setGolFora(e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) => handleGolForaChange(e.target.value === "" ? "" : Number(e.target.value))}
               disabled={isLocked}
               className="w-14 h-14 text-center text-xl font-bold bg-black/40 border-white/10 focus:border-wc-cyan focus:ring-wc-cyan rounded-xl"
             />

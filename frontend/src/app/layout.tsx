@@ -25,8 +25,26 @@ export default function RootLayout({
           <main className="pt-16">
             {children}
           </main>
+          <footer className="border-t border-white/5 bg-black/40 backdrop-blur-sm mt-8">
+            <div className="container mx-auto px-4 py-5 flex flex-col items-center gap-1 text-center">
+              <p className="text-xs text-slate-500">
+                Todos os direitos reservados<br />
+                Desenvolvido por{" "}
+                <a
+                  href="https://github.com/halvesromano"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-wc-cyan hover:text-white transition-colors font-medium"
+                >
+                  @halvesromano
+                </a>{" "}
+                - 2026
+              </p>
+            </div>
+          </footer>
         </AuthGuard>
       </body>
     </html>
   );
 }
+

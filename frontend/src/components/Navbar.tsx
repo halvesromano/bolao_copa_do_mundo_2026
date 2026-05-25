@@ -84,7 +84,7 @@ export function Navbar() {
                 className="flex items-center gap-2 px-3 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all text-sm font-medium"
               >
                 <UserCircle className="w-5 h-5 text-wc-cyan" />
-                <span className="max-w-[100px] truncate">{user?.username}</span>
+                <span className="max-w-[100px] truncate">{user?.username?.split(" ")[0]}</span>
                 <ChevronDown className={`w-4 h-4 transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
               </button>
 
@@ -177,7 +177,7 @@ export function Navbar() {
                 <>
                   <div className="flex items-center gap-2 px-4 py-2 text-slate-400 text-sm">
                     <UserCircle className="w-5 h-5 text-wc-cyan" />
-                    <span className="font-medium text-white truncate">{user?.username}</span>
+                    <span className="font-medium text-white truncate">{user?.username?.split(" ")[0]}</span>
                   </div>
                   <Link
                     href="/conta"
