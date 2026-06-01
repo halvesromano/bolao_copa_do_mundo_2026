@@ -38,8 +38,8 @@ export function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Jogos", icon: <Trophy className="w-4 h-4" /> },
-    { href: "/ranking", label: "Ranking", icon: <Medal className="w-4 h-4" /> },
     { href: "/tabela", label: "Tabela", icon: <TableProperties className="w-4 h-4" /> },
+    { href: "/ranking", label: "Ranking", icon: <Medal className="w-4 h-4" /> },
     { href: "/estatisticas", label: "Estatísticas", icon: <PieChart className="w-4 h-4" /> },
     ...(token ? [
       { href: "/grupos", label: "Grupos", icon: <Users className="w-4 h-4" /> },

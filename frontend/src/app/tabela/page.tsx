@@ -117,7 +117,7 @@ export default function TabelaPage() {
             <span className="w-3 h-3 rounded-sm bg-emerald-500 inline-block" /> Classificados
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm bg-yellow-500 inline-block" /> 3º Lugar (repescagem)
+            <span className="w-3 h-3 rounded-sm bg-yellow-500 inline-block" /> 3º Lugar (8 melhores 3ºs colocados se classificam)
           </span>
         </div>
 
