@@ -200,7 +200,7 @@ export default function Home() {
             transition={{ delay: 0.2 }}
             className="text-slate-400 mt-4 max-w-lg mx-auto"
           >
-            Faça seus palpites até 1 hora antes de cada jogo e compita pelo topo do ranking global.
+            Faça seus palpites até 1 hora antes de cada jogo e compita pelo topo do ranking.
           </motion.p>
         </div>
       </header>
@@ -317,7 +317,7 @@ export default function Home() {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-5 pt-3 flex justify-center"
+            className="sticky bottom-0 left-0 right-0 z-40 px-4 pb-5 pt-3 flex justify-center"
             style={{
               background:
                 "linear-gradient(to top, rgba(2,6,23,0.95) 60%, transparent)",

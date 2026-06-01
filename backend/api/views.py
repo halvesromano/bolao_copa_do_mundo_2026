@@ -4,7 +4,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from django.db.models import Sum
+from django.db.models import Sum, Count, Q, F
 from .models import Time, Fase, Jogo, Palpite, GrupoPrivado
 from .serializers import (
     UserSerializer, TimeSerializer, FaseSerializer,
@@ -155,3 +155,45 @@ class AlterarSenhaView(APIView):
         user.set_password(nova_senha)
         user.save()
         return Response({'success': 'Senha alterada com sucesso.'}, status=status.HTTP_200_OK)
+
+
+class EstatisticasViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def list(self, request):
+        grupo_id = request.query_params.get('grupo_id')
+        
+        users_qs = User.objects.all()
+        if grupo_id:
+            try:
+                grupo = GrupoPrivado.objects.get(id=grupo_id)
+                users_qs = grupo.membros.all()
+            except GrupoPrivado.DoesNotExist:
+                return Response({'error': 'Grupo não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        stats = users_qs.annotate(
+            acertos_exatos=Count('palpite', filter=Q(
+                palpite__jogo__encerrado=True,
+                palpite__gol_casa=F('palpite__jogo__gol_casa'),
+                palpite__gol_fora=F('palpite__jogo__gol_fora')
+            )),
+            erros_zerados=Count('palpite', filter=Q(
+                palpite__jogo__encerrado=True,
+                palpite__pontos=0
+            ))
+        )
+        
+        top_exatos = stats.filter(acertos_exatos__gt=0).order_by('-acertos_exatos')[:10]
+        top_zerados = stats.filter(erros_zerados__gt=0).order_by('-erros_zerados')[:10]
+        
+        return Response({
+            'top_exatos': [
+                {'usuario_id': u.id, 'username': u.username, 'quantidade': u.acertos_exatos}
+                for u in top_exatos
+            ],
+            'top_zerados': [
+                {'usuario_id': u.id, 'username': u.username, 'quantidade': u.erros_zerados}
+                for u in top_zerados
+            ]
+        })
+

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, ArrowLeft, Users, Globe } from "lucide-react";
+import { Trophy, Medal, ArrowLeft, Users, Globe, Info } from "lucide-react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -107,6 +107,32 @@ export default function RankingPage() {
       </header>
 
       <section className="container mx-auto px-4 max-w-3xl">
+        {/* Regras de Pontuação */}
+        <div className="mb-6 bg-white/5 border border-white/10 rounded-2xl p-4 md:p-5">
+          <h2 className="flex items-center gap-2 font-bold text-slate-200 mb-3">
+            <Info className="w-5 h-5 text-wc-cyan" /> Regras de Pontuação
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-400">
+            <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+              <h3 className="text-white font-bold mb-2">Fase de Grupos</h3>
+              <ul className="space-y-2">
+                <li className="flex justify-between"><span>Placar Exato 🎯</span><span className="text-wc-cyan font-bold">+7 pts</span></li>
+                <li className="flex justify-between"><span>Acertar Vencedor/Empate ✅</span><span className="text-wc-cyan font-bold">+2 pts</span></li>
+                <li className="flex justify-between"><span>Acertar Gols de 1 Time ⚽</span><span className="text-wc-cyan font-bold">+1 pt</span></li>
+              </ul>
+            </div>
+            <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+              <h3 className="text-white font-bold mb-2">Mata-mata</h3>
+              <ul className="space-y-2">
+                <li className="flex justify-between"><span>Placar Exato 🎯</span><span className="text-wc-cyan font-bold">+10 pts</span></li>
+                <li className="flex justify-between"><span>Acertar Vencedor/Empate ✅</span><span className="text-wc-cyan font-bold">+3 pts</span></li>
+                <li className="flex justify-between"><span>Acertar Gols de 1 Time ⚽</span><span className="text-wc-cyan font-bold">+1 pt</span></li>
+              </ul>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 mt-3 italic">* Os pontos por vencedor e número de gols não são cumulativos caso o placar exato seja acertado.</p>
+        </div>
+
         {/* Seletor de Aba: Global / Grupo */}
         <div className="flex rounded-xl bg-white/5 border border-white/10 p-1 mb-6">
           <button
