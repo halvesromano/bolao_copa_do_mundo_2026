@@ -21,6 +21,10 @@ interface MatchCardProps {
   grupoLabel?: string;
   golCasa?: number | null;
   golFora?: number | null;
+  encerrado?: boolean;
+  realGolCasa?: number | null;
+  realGolFora?: number | null;
+  pontos?: number | null;
   onPalpiteSubmit?: (matchId: number, golCasa: number, golFora: number) => void;
   onGolChange?: (matchId: number, golCasa: number | "", golFora: number | "") => void;
 }
@@ -34,6 +38,10 @@ export function MatchCard({
   grupoLabel,
   golCasa: initialGolCasa = null,
   golFora: initialGolFora = null,
+  encerrado = false,
+  realGolCasa = null,
+  realGolFora = null,
+  pontos = null,
   onPalpiteSubmit,
   onGolChange,
 }: MatchCardProps) {
@@ -42,11 +50,19 @@ export function MatchCard({
   const isLocked = new Date(dataHora).getTime() - new Date().getTime() <= 60 * 60 * 1000;
 
   const handleGolCasaChange = (value: number | "") => {
+    if (value !== "" && value < 0) {
+      alert("Não é permitido placar negativo.");
+      return;
+    }
     setGolCasa(value);
     onGolChange?.(id, value, golFora);
   };
 
   const handleGolForaChange = (value: number | "") => {
+    if (value !== "" && value < 0) {
+      alert("Não é permitido placar negativo.");
+      return;
+    }
     setGolFora(value);
     onGolChange?.(id, golCasa, value);
   };
@@ -61,6 +77,11 @@ export function MatchCard({
   return (
     <Card className="overflow-hidden bg-white/5 backdrop-blur-md border-white/10 hover:border-white/20 transition-all duration-300 shadow-xl rounded-2xl">
       <CardHeader className="p-4 pb-2 border-b border-white/5 bg-black/40 text-center relative">
+        {pontos !== null && pontos !== undefined && (
+          <span className="absolute top-2 left-3 text-[10px] font-bold text-white bg-wc-cyan/20 border border-wc-cyan/30 px-2 py-0.5 rounded-full">
+            {pontos} pts
+          </span>
+        )}
         {grupoLabel && (
           <span className="absolute top-2 right-3 text-[10px] font-bold text-black bg-yellow-400 px-2 py-0.5 rounded-full uppercase tracking-wide">
             {grupoLabel}
@@ -84,26 +105,33 @@ export function MatchCard({
           </div>
 
           {/* Placar e Inputs */}
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              min="0"
-              max="20"
-              value={golCasa}
-              onChange={(e) => handleGolCasaChange(e.target.value === "" ? "" : Number(e.target.value))}
-              disabled={isLocked}
-              className="w-14 h-14 text-center text-xl font-bold bg-black/40 border-white/10 focus:border-wc-cyan focus:ring-wc-cyan rounded-xl"
-            />
-            <span className="text-slate-500 font-bold text-xl">X</span>
-            <Input
-              type="number"
-              min="0"
-              max="20"
-              value={golFora}
-              onChange={(e) => handleGolForaChange(e.target.value === "" ? "" : Number(e.target.value))}
-              disabled={isLocked}
-              className="w-14 h-14 text-center text-xl font-bold bg-black/40 border-white/10 focus:border-wc-cyan focus:ring-wc-cyan rounded-xl"
-            />
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min="0"
+                max="20"
+                value={golCasa}
+                onChange={(e) => handleGolCasaChange(e.target.value === "" ? "" : Number(e.target.value))}
+                disabled={isLocked || encerrado}
+                className="w-14 h-14 text-center text-xl font-bold bg-black/40 border-white/10 focus:border-wc-cyan focus:ring-wc-cyan rounded-xl"
+              />
+              <span className="text-slate-500 font-bold text-xl">X</span>
+              <Input
+                type="number"
+                min="0"
+                max="20"
+                value={golFora}
+                onChange={(e) => handleGolForaChange(e.target.value === "" ? "" : Number(e.target.value))}
+                disabled={isLocked || encerrado}
+                className="w-14 h-14 text-center text-xl font-bold bg-black/40 border-white/10 focus:border-wc-cyan focus:ring-wc-cyan rounded-xl"
+              />
+            </div>
+            {encerrado && realGolCasa !== null && realGolFora !== null && (
+              <span className="text-[10px] text-wc-cyan font-semibold uppercase tracking-widest mt-1">
+                Final: {realGolCasa} x {realGolFora}
+              </span>
+            )}
           </div>
 
           {/* Time Fora */}

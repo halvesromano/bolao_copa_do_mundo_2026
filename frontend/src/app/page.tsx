@@ -290,6 +290,10 @@ export default function Home() {
                         grupoLabel={viewAll && grupoLetra ? `Gr. ${grupoLetra}` : undefined}
                         golCasa={palpiteFeito ? palpiteFeito.gol_casa : null}
                         golFora={palpiteFeito ? palpiteFeito.gol_fora : null}
+                        encerrado={match.encerrado}
+                        realGolCasa={match.gol_casa}
+                        realGolFora={match.gol_fora}
+                        pontos={palpiteFeito ? palpiteFeito.pontos : null}
                         onPalpiteSubmit={handlePalpite}
                         onGolChange={handleGolChange}
                       />
