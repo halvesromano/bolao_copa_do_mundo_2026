@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy, Medal, Users, UserCircle, LogOut,
-  KeyRound, ChevronDown, Menu, X, PieChart, Eye, TableProperties
+  KeyRound, ChevronDown, Menu, X, PieChart, Eye, TableProperties, Star
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -42,6 +42,7 @@ export function Navbar() {
     { href: "/ranking", label: "Ranking", icon: <Medal className="w-4 h-4" /> },
     { href: "/estatisticas", label: "Estatísticas", icon: <PieChart className="w-4 h-4" /> },
     ...(token ? [
+      { href: "/palpite-bonus", label: "Palpite Bônus", icon: <Star className="w-4 h-4" /> },
       { href: "/grupos", label: "Grupos", icon: <Users className="w-4 h-4" /> },
       { href: "/palpites-galera", label: "Palpites da Galera", icon: <Eye className="w-4 h-4" /> }
     ] : []),

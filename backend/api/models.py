@@ -100,3 +100,42 @@ class GrupoPrivado(models.Model):
 
     def __str__(self):
         return f"{self.nome} ({self.codigo})"
+
+
+class PalpiteCampeao(models.Model):
+    """Palpite Bônus: cada usuário palpita o campeão da Copa."""
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='palpite_campeao')
+    time = models.ForeignKey(Time, on_delete=models.CASCADE, related_name='palpites_campeao')
+    pontos = models.IntegerField(default=0)  # 25 se acertou, 0 caso contrário
+    criado_em = models.DateTimeField(auto_now_add=True)
+    atualizado_em = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.usuario.username} → {self.time.nome} ({self.pontos} pts)"
+
+
+class ConfigCampeao(models.Model):
+    """Configuração singleton: o admin define aqui o time campeão da Copa."""
+    campeao = models.ForeignKey(
+        Time, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='config_campeao', verbose_name='Time Campeão'
+    )
+    definido_em = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Configuração do Campeão'
+        verbose_name_plural = 'Configuração do Campeão'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Ao salvar, distribui/recalcula os 25 pontos para quem acertou
+        if self.campeao:
+            for pb in PalpiteCampeao.objects.all():
+                pts = 25 if pb.time_id == self.campeao_id else 0
+                if pb.pontos != pts:
+                    pb.pontos = pts
+                    pb.save(update_fields=['pontos'])
+
+    def __str__(self):
+        return f"Campeão: {self.campeao.nome if self.campeao else 'Não definido'}"
+

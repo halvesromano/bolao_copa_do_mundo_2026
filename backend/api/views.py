@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django.db.models import Sum, Count, Q, F
-from .models import Time, Fase, Jogo, Palpite, GrupoPrivado
+from .models import Time, Fase, Jogo, Palpite, GrupoPrivado, PalpiteCampeao, ConfigCampeao
 from .serializers import (
     UserSerializer, TimeSerializer, FaseSerializer,
     JogoSerializer, PalpiteSerializer, GrupoPrivadoSerializer
@@ -51,8 +51,11 @@ class RankingViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def list(self, request):
+        from django.db.models.functions import Coalesce
         ranking = User.objects.annotate(
-            total_pontos=Sum('palpite__pontos')
+            pontos_palpites=Coalesce(Sum('palpite__pontos'), 0),
+            pontos_campeao=Coalesce(F('palpite_campeao__pontos'), 0),
+            total_pontos=F('pontos_palpites') + F('pontos_campeao')
         ).order_by('-total_pontos')
         
         data = []
@@ -65,6 +68,7 @@ class RankingViewSet(viewsets.ViewSet):
             })
             
         return Response(data)
+
 
 
 class GrupoPrivadoViewSet(viewsets.ModelViewSet):
@@ -109,8 +113,11 @@ class GrupoPrivadoViewSet(viewsets.ModelViewSet):
         grupo = self.get_object()
         membros = grupo.membros.all()
         
+        from django.db.models.functions import Coalesce
         ranking = membros.annotate(
-            total_pontos=Sum('palpite__pontos')
+            pontos_palpites=Coalesce(Sum('palpite__pontos'), 0),
+            pontos_campeao=Coalesce(F('palpite_campeao__pontos'), 0),
+            total_pontos=F('pontos_palpites') + F('pontos_campeao')
         ).order_by('-total_pontos')
 
         data = []
@@ -123,6 +130,7 @@ class GrupoPrivadoViewSet(viewsets.ModelViewSet):
                 'is_criador': user == grupo.criador,
             })
         return Response(data)
+
 
     @action(detail=True, methods=['get'])
     def palpites_galera(self, request, pk=None):
@@ -310,4 +318,85 @@ class TabelaGruposViewSet(viewsets.ViewSet):
         for i, t in enumerate(times_lista):
             t['pos'] = i + 1
 
-        return Response({'grupo': grupo_letra, 'times': times_lista})
+
+
+class PalpiteCampeaoViewSet(viewsets.ViewSet):
+    """Palpite Bônus — o usuário aposta no campeão da Copa."""
+
+    def _get_deadline(self):
+        """Retorna o prazo: 1 hora antes do primeiro jogo cadastrado."""
+        from django.utils import timezone as tz
+        primeiro_jogo = Jogo.objects.order_by('data_hora').first()
+        if not primeiro_jogo:
+            return None
+        return primeiro_jogo.data_hora - tz.timedelta(hours=1)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def deadline(self, request):
+        """Retorna a data/hora limite para o palpite bônus."""
+        dl = self._get_deadline()
+        return Response({'deadline': dl.isoformat() if dl else None})
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
+    def resultado(self, request):
+        """Retorna o campeão definido pelo admin (se já definido)."""
+        config = ConfigCampeao.objects.first()
+        if config and config.campeao:
+            from .serializers import TimeSerializer
+            return Response({
+                'definido': True,
+                'time_campeao': TimeSerializer(config.campeao).data,
+            })
+        return Response({'definido': False, 'time_campeao': None})
+
+    def list(self, request):
+        """Retorna o palpite atual do usuário logado."""
+        if not request.user.is_authenticated:
+            return Response({'palpite': None})
+        try:
+            pb = PalpiteCampeao.objects.select_related('time').get(usuario=request.user)
+            from .serializers import TimeSerializer
+            return Response({
+                'palpite': {
+                    'time': TimeSerializer(pb.time).data,
+                    'pontos_bonus': pb.pontos,
+                }
+            })
+        except PalpiteCampeao.DoesNotExist:
+            return Response({'palpite': None})
+
+    def create(self, request):
+        """Cria ou atualiza o palpite bônus do usuário."""
+        if not request.user.is_authenticated:
+            return Response({'error': 'Login necessário.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        from django.utils import timezone as tz
+        dl = self._get_deadline()
+        if dl and tz.now() > dl:
+            return Response(
+                {'error': 'O prazo para o palpite bônus expirou.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        time_id = request.data.get('time_id')
+        if not time_id:
+            return Response({'error': 'Informe o time_id.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            time = Time.objects.get(id=time_id)
+        except Time.DoesNotExist:
+            return Response({'error': 'Time não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        pb, _ = PalpiteCampeao.objects.update_or_create(
+            usuario=request.user,
+            defaults={'time': time}
+        )
+        from .serializers import TimeSerializer
+        return Response({
+            'success': True,
+            'palpite': {
+                'time': TimeSerializer(pb.time).data,
+                'pontos_bonus': pb.pontos,
+            }
+        }, status=status.HTTP_200_OK)
+

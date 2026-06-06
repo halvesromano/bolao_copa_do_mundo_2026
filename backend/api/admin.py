@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Time, Fase, Jogo, Palpite, GrupoPrivado
+from .models import Time, Fase, Jogo, Palpite, GrupoPrivado, PalpiteCampeao, ConfigCampeao
 
 @admin.register(Time)
 class TimeAdmin(admin.ModelAdmin):
@@ -32,3 +32,22 @@ class GrupoPrivadoAdmin(admin.ModelAdmin):
     def total_membros(self, obj):
         return obj.membros.count()
     total_membros.short_description = 'Membros'
+
+@admin.register(PalpiteCampeao)
+class PalpiteCampeaoAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'time', 'pontos', 'criado_em')
+    list_filter = ('time',)
+    search_fields = ('usuario__username', 'time__nome')
+    readonly_fields = ('pontos', 'criado_em', 'atualizado_em')
+
+@admin.register(ConfigCampeao)
+class ConfigCampeaoAdmin(admin.ModelAdmin):
+    list_display = ('campeao', 'definido_em')
+
+    def has_add_permission(self, request):
+        # Só permite 1 registro (singleton)
+        return not ConfigCampeao.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+

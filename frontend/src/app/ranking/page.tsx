@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, ArrowLeft, Users, Globe, Info } from "lucide-react";
+import { Trophy, Medal, Users, Globe, Info, Star } from "lucide-react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -130,7 +130,17 @@ export default function RankingPage() {
               </ul>
             </div>
           </div>
-          <p className="text-xs text-slate-500 mt-3 italic">* Os pontos por vencedor e número de gols não são cumulativos caso o placar exato seja acertado.</p>
+          {/* Palpite Bônus */}
+          <div className="mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 flex items-center justify-between text-sm">
+            <span className="text-slate-300 flex items-center gap-2">
+              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 flex-shrink-0" />
+              Palpite Bônus — Acertar o Campeão da Copa
+            </span>
+            <span className="text-yellow-400 font-black ml-3 whitespace-nowrap">+25 pts</span>
+          </div>
+          <p className="text-xs text-slate-500 mt-2 italic">
+            * Os pontos por vencedor e gols não são cumulativos se o placar exato for acertado.
+          </p>
         </div>
 
         {/* Seletor de Aba: Global / Grupo */}

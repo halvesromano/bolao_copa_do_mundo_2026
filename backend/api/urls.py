@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, TimeViewSet, FaseViewSet, JogoViewSet, PalpiteViewSet, RankingViewSet, GrupoPrivadoViewSet, AlterarSenhaView, EstatisticasViewSet, TabelaGruposViewSet
+from .views import UserViewSet, TimeViewSet, FaseViewSet, JogoViewSet, PalpiteViewSet, RankingViewSet, GrupoPrivadoViewSet, AlterarSenhaView, EstatisticasViewSet, TabelaGruposViewSet, PalpiteCampeaoViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
@@ -12,6 +12,7 @@ router.register(r'ranking', RankingViewSet, basename='ranking')
 router.register(r'grupos', GrupoPrivadoViewSet, basename='grupo')
 router.register(r'estatisticas', EstatisticasViewSet, basename='estatisticas')
 router.register(r'tabela', TabelaGruposViewSet, basename='tabela')
+router.register(r'palpite-campeao', PalpiteCampeaoViewSet, basename='palpite-campeao')
 
 urlpatterns = [
     path('', include(router.urls)),
