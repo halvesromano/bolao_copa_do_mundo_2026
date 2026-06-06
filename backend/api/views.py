@@ -318,6 +318,7 @@ class TabelaGruposViewSet(viewsets.ViewSet):
         for i, t in enumerate(times_lista):
             t['pos'] = i + 1
 
+        return Response({'grupo': grupo_letra, 'times': times_lista})
 
 
 class PalpiteCampeaoViewSet(viewsets.ViewSet):
