@@ -6,6 +6,8 @@ import { MatchCard } from "@/components/MatchCard";
 import { Trophy, Calendar, Layers, Save, CheckCircle, XCircle } from "lucide-react";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/useAuthStore";
+import Link from "next/link";
+
 
 const GRUPOS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
 
@@ -202,6 +204,38 @@ export default function Home() {
           >
             Faça seus palpites até 1 hora antes de cada jogo e compita pelo topo do ranking.
           </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-5 inline-flex items-center"
+          >
+            <Link
+              href="/palpite-bonus"
+              className="flex items-center gap-2.5 px-5 py-2.5 bg-gradient-to-r from-yellow-500/10 via-amber-500/15 to-yellow-500/10 border border-yellow-500/30 hover:border-yellow-500/60 rounded-full text-yellow-300 font-semibold text-xs md:text-sm transition-all duration-300 shadow-[0_0_15px_rgba(234,179,8,0.1)] hover:shadow-[0_0_20px_rgba(234,179,8,0.2)] hover:scale-105 active:scale-95"
+            >
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+              </span>
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span>
+                Quer ganhar <span className="text-yellow-400 font-black">+25 pontos extras</span>? Faça seu <span className="underline decoration-yellow-400/50 hover:decoration-yellow-400 font-bold">Palpite Bônus</span> 🏆
+              </span>
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+              </span>
+            </Link>
+          </motion.div>
+
         </div>
       </header>
 
