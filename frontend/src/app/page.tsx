@@ -14,7 +14,97 @@ const GRUPOS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
 type GolChange = { golCasa: number | ""; golFora: number | "" };
 type Toast = { type: "success" | "error"; message: string };
 
+interface NextMatchCountdownProps {
+  match: any;
+  palpite: any;
+  onClick: () => void;
+}
+
+function NextMatchCountdown({ match, palpite, onClick }: NextMatchCountdownProps) {
+  const deadline = React.useMemo(() => {
+    return new Date(new Date(match.data_hora).getTime() - 3600000);
+  }, [match.data_hora]);
+
+  const [diff, setDiff] = useState(deadline.getTime() - Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDiff(deadline.getTime() - Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [deadline]);
+
+  if (diff <= 0) return null;
+
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const grupoLetra = match.fase?.nome?.replace("Grupo ", "") || "";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2, scale: 1.01 }}
+      onClick={onClick}
+      className="mt-8 max-w-xl mx-auto bg-slate-900/60 border border-slate-700/40 rounded-3xl p-6 backdrop-blur-md shadow-2xl relative overflow-hidden cursor-pointer hover:border-emerald-500/40 transition-all duration-300"
+    >
+      <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-emerald-500 to-wc-cyan" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+        {/* Jogo info */}
+        <div className="text-left flex-1 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[10px] uppercase font-black tracking-wider bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">
+                ⏱️ Próximo Fechamento
+              </span>
+              {grupoLetra && (
+                <span className="text-[10px] uppercase font-black tracking-wider bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700/50">
+                  Grupo {grupoLetra}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-white font-extrabold text-base md:text-lg tracking-tight">
+              <span>{match.time_casa.nome}</span>
+              <span className="text-slate-500 text-xs font-medium">vs</span>
+              <span>{match.time_fora.nome}</span>
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            {palpite ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Seu palpite: <strong className="text-white font-bold">{palpite.gol_casa} x {palpite.gol_fora}</strong>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-full text-xs font-semibold animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                Você ainda não palpitou! Clique para palpitar.
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Contador */}
+        <div className="flex items-center gap-2 shrink-0 justify-center">
+          {[{ v: d, l: "dias" }, { v: h, l: "horas" }, { v: m, l: "min" }, { v: s, l: "seg" }].map(({ v, l }) => (
+            <div key={l} className="flex flex-col items-center bg-black/40 border border-white/5 rounded-2xl px-3 py-2 min-w-[54px]">
+              <span className="text-xl font-black text-emerald-400 tabular-nums">{pad(v)}</span>
+              <span className="text-[9px] text-slate-500 uppercase tracking-widest mt-0.5">{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function Home() {
+
   const [selectedGroup, setSelectedGroup] = useState("A");
   const [viewAll, setViewAll] = useState(false);
   const [matches, setMatches] = useState<any[]>([]);
@@ -48,6 +138,42 @@ export default function Home() {
     };
     fetchData();
   }, [token]);
+
+  // Encontra o próximo jogo mais próximo que ainda não expirou
+  const nextMatch = React.useMemo(() => {
+    if (!matches || matches.length === 0) return null;
+    const now = Date.now();
+    const upcoming = matches.filter((m) => {
+      if (m.encerrado) return false;
+      const matchTime = new Date(m.data_hora).getTime();
+      const deadline = matchTime - 3600000; // 1 hora antes
+      return now < deadline;
+    });
+    if (upcoming.length === 0) return null;
+    upcoming.sort((a, b) => new Date(a.data_hora).getTime() - new Date(b.data_hora).getTime());
+    return upcoming[0];
+  }, [matches]);
+
+  const nextMatchPalpite = React.useMemo(() => {
+    if (!nextMatch) return null;
+    return palpites.find((p) => p.jogo.id === nextMatch.id) || null;
+  }, [nextMatch, palpites]);
+
+  const handleScrollToMatch = (matchId: number, grupoLetra: string) => {
+    setViewAll(false);
+    setSelectedGroup(grupoLetra);
+    setTimeout(() => {
+      const el = document.getElementById(`match-${matchId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-4", "ring-emerald-500/80", "scale-105");
+        setTimeout(() => {
+          el.classList.remove("ring-4", "ring-emerald-500/80", "scale-105");
+        }, 2000);
+      }
+    }, 150);
+  };
+
 
   // Jogos exibidos conforme o modo (grupo único ou todos)
   const displayedMatches = viewAll
@@ -239,6 +365,7 @@ export default function Home() {
         </div>
       </header>
 
+
       {/* Navegação de Grupos + Toggle "Todos" */}
       <section className="container mx-auto px-4 mt-8">
         <div className="flex items-center md:justify-center gap-2 md:gap-3 overflow-x-auto md:flex-wrap pb-4 scrollbar-hide snap-x">
@@ -282,7 +409,18 @@ export default function Home() {
             </span>
           )}
         </div>
+        {nextMatch && (
+          <NextMatchCountdown
+            match={nextMatch}
+            palpite={nextMatchPalpite}
+            onClick={() => {
+              const grupoLetra = nextMatch.fase?.nome?.replace("Grupo ", "") || "A";
+              handleScrollToMatch(nextMatch.id, grupoLetra);
+            }}
+          />
+        )}
       </section>
+
 
       {/* Lista de Jogos */}
       <section className="container mx-auto px-4 mt-8 mb-16">
@@ -309,7 +447,10 @@ export default function Home() {
                   return (
                     <motion.div
                       key={match.id}
+                      id={`match-${match.id}`}
                       layout
+                      className="transition-all duration-500 rounded-3xl"
+
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
