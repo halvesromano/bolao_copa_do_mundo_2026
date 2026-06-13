@@ -250,6 +250,7 @@ export default function PalpitesGaleraPage() {
                             <th className="px-6 py-4">Jogo</th>
                             <th className="px-6 py-4">Data / Fase</th>
                             <th className="px-6 py-4 text-center">Palpite</th>
+                            <th className="px-6 py-4 text-center">Palpitado em</th>
                             <th className="px-6 py-4 text-center">Placar Real</th>
                             <th className="px-6 py-4 text-center">Pontos</th>
                           </>
@@ -257,6 +258,7 @@ export default function PalpitesGaleraPage() {
                           <>
                             <th className="px-6 py-4">Usuário</th>
                             <th className="px-6 py-4 text-center">Palpite</th>
+                            <th className="px-6 py-4 text-center">Palpitado em</th>
                             <th className="px-6 py-4 text-center">Placar Real</th>
                             <th className="px-6 py-4 text-center">Pontos</th>
                           </>
@@ -293,6 +295,14 @@ export default function PalpitesGaleraPage() {
                                     {palpite.gol_casa} - {palpite.gol_fora}
                                   </div>
                                 </td>
+                                <td className="px-6 py-4 text-center text-xs text-slate-400">
+                                  {new Date(palpite.atualizado_em).toLocaleString("pt-BR", {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </td>
                                 <td className="px-6 py-4 text-center">
                                   <div className="inline-block bg-black/40 px-4 py-2 rounded-xl border border-white/5 font-black text-wc-cyan text-lg tracking-widest opacity-80">
                                     {palpite.jogo.encerrado ? `${palpite.jogo.gol_casa} - ${palpite.jogo.gol_fora}` : "—"}
@@ -325,6 +335,14 @@ export default function PalpitesGaleraPage() {
                                   <div className="inline-block bg-black/40 px-4 py-2 rounded-xl border border-white/10 font-black text-white text-lg tracking-widest shadow-inner">
                                     {palpite.gol_casa} - {palpite.gol_fora}
                                   </div>
+                                </td>
+                                <td className="px-6 py-4 text-center text-xs text-slate-400">
+                                  {new Date(palpite.atualizado_em).toLocaleString("pt-BR", {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                   <div className="inline-block bg-black/40 px-4 py-2 rounded-xl border border-white/5 font-black text-wc-cyan text-lg tracking-widest opacity-80">
