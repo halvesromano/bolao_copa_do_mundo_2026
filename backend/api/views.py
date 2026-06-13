@@ -139,9 +139,11 @@ class GrupoPrivadoViewSet(viewsets.ModelViewSet):
         usuario_id = request.query_params.get('usuario_id')
         jogo_id = request.query_params.get('jogo_id')
         
-        # Filtrar palpites de jogos encerrados feitos por membros deste grupo
+        # Filtrar palpites de jogos cujo prazo de palpite expirou (1 hora antes do jogo) ou já encerrados
+        from django.utils import timezone as tz
+        limite_deadline = tz.now() + tz.timedelta(hours=1)
         palpites = Palpite.objects.filter(
-            jogo__encerrado=True,
+            Q(jogo__encerrado=True) | Q(jogo__data_hora__lt=limite_deadline),
             usuario__in=grupo.membros.all()
         )
         

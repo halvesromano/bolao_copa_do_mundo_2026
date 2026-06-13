@@ -71,12 +71,16 @@ export default function PalpitesGaleraPage() {
         }
       });
       
-      // Jogos encerrados (para o seletor de jogos)
+      // Jogos cujos prazos de palpites já expiraram (1 hora antes do jogo) ou encerrados
       api.get(`/jogos/`).then((res) => {
-        const encerrados = res.data.filter((j: Jogo) => j.encerrado);
-        setJogos(encerrados);
-        if (encerrados.length > 0) {
-          setJogoSelecionado(encerrados[0].id);
+        const agora = Date.now();
+        const expiradosOuEncerrados = res.data.filter((j: Jogo) => {
+          const limite = new Date(j.data_hora).getTime() - 3600000;
+          return j.encerrado || agora > limite;
+        });
+        setJogos(expiradosOuEncerrados);
+        if (expiradosOuEncerrados.length > 0) {
+          setJogoSelecionado(expiradosOuEncerrados[0].id);
         }
       });
     }
@@ -132,7 +136,7 @@ export default function PalpitesGaleraPage() {
             Palpites da Galera
           </motion.h1>
           <p className="text-slate-400 mt-2 max-w-lg mx-auto text-sm">
-            Descubra quem cravou o placar e quem passou vergonha nos jogos já finalizados.
+            Descubra os palpites dos participantes assim que o prazo de apostas do jogo se encerra.
           </p>
         </div>
       </header>
@@ -225,7 +229,7 @@ export default function PalpitesGaleraPage() {
               )}
               
               {modo === "jogo" && jogos.length === 0 && (
-                <p className="text-slate-400">Nenhum jogo foi encerrado ainda.</p>
+                <p className="text-slate-400">Nenhum jogo teve o prazo de palpites encerrado ainda.</p>
               )}
             </div>
 
@@ -291,17 +295,21 @@ export default function PalpitesGaleraPage() {
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                   <div className="inline-block bg-black/40 px-4 py-2 rounded-xl border border-white/5 font-black text-wc-cyan text-lg tracking-widest opacity-80">
-                                    {palpite.jogo.gol_casa} - {palpite.jogo.gol_fora}
+                                    {palpite.jogo.encerrado ? `${palpite.jogo.gol_casa} - ${palpite.jogo.gol_fora}` : "—"}
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 text-center font-black">
-                                  <span className={`inline-block px-3 py-1 rounded-full text-xs shadow-sm ${
-                                    palpite.pontos >= 7 ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30" : 
-                                    palpite.pontos > 0 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : 
-                                    "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                                  }`}>
-                                    +{palpite.pontos} pts
-                                  </span>
+                                  {palpite.jogo.encerrado ? (
+                                    <span className={`inline-block px-3 py-1 rounded-full text-xs shadow-sm ${
+                                      palpite.pontos >= 7 ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30" : 
+                                      palpite.pontos > 0 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : 
+                                      "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                                    }`}>
+                                      +{palpite.pontos} pts
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-500 font-medium text-xs">Aguardando</span>
+                                  )}
                                 </td>
                               </>
                             ) : (
@@ -320,17 +328,21 @@ export default function PalpitesGaleraPage() {
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                   <div className="inline-block bg-black/40 px-4 py-2 rounded-xl border border-white/5 font-black text-wc-cyan text-lg tracking-widest opacity-80">
-                                    {palpite.jogo.gol_casa} - {palpite.jogo.gol_fora}
+                                    {palpite.jogo.encerrado ? `${palpite.jogo.gol_casa} - ${palpite.jogo.gol_fora}` : "—"}
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 text-center font-black">
-                                  <span className={`inline-block px-3 py-1 rounded-full text-xs shadow-sm ${
-                                    palpite.pontos >= 7 ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30" : 
-                                    palpite.pontos > 0 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : 
-                                    "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                                  }`}>
-                                    +{palpite.pontos} pts
-                                  </span>
+                                  {palpite.jogo.encerrado ? (
+                                    <span className={`inline-block px-3 py-1 rounded-full text-xs shadow-sm ${
+                                      palpite.pontos >= 7 ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30" : 
+                                      palpite.pontos > 0 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : 
+                                      "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                                    }`}>
+                                      +{palpite.pontos} pts
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-500 font-medium text-xs">Aguardando</span>
+                                  )}
                                 </td>
                               </>
                             )}
