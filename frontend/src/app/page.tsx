@@ -22,7 +22,7 @@ interface NextMatchCountdownProps {
 
 function NextMatchCountdown({ match, palpite, onClick }: NextMatchCountdownProps) {
   const deadline = React.useMemo(() => {
-    return new Date(new Date(match.data_hora).getTime() - 3600000);
+    return new Date(new Date(match.data_hora).getTime() - 60000);
   }, [match.data_hora]);
 
   const [diff, setDiff] = useState(deadline.getTime() - Date.now());
@@ -146,7 +146,7 @@ export default function Home() {
     const upcoming = matches.filter((m) => {
       if (m.encerrado) return false;
       const matchTime = new Date(m.data_hora).getTime();
-      const deadline = matchTime - 3600000; // 1 hora antes
+      const deadline = matchTime - 60000; // 1 minuto antes
       return now < deadline;
     });
     if (upcoming.length === 0) return null;
@@ -328,7 +328,7 @@ export default function Home() {
             transition={{ delay: 0.2 }}
             className="text-slate-400 mt-4 max-w-lg mx-auto"
           >
-            Faça seus palpites até 1 hora antes de cada jogo e compita pelo topo do ranking.
+            Faça seus palpites até 1 minuto antes de cada jogo e compita pelo topo do ranking.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 10 }}

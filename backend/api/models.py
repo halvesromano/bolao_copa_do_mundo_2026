@@ -68,11 +68,11 @@ class Palpite(models.Model):
         unique_together = ('usuario', 'jogo')
 
     def clean(self):
-        # Bloquear palpites 1 hora antes do jogo
+        # Bloquear palpites 1 minuto antes do jogo
         if self.jogo.data_hora:
-            um_hora_antes = self.jogo.data_hora - timezone.timedelta(hours=1)
-            if timezone.now() > um_hora_antes:
-                raise ValidationError("Os palpites devem ser feitos até 1 hora antes do início do jogo.")
+            um_minuto_antes = self.jogo.data_hora - timezone.timedelta(minutes=1)
+            if timezone.now() > um_minuto_antes:
+                raise ValidationError("Os palpites devem ser feitos até 1 minuto antes do início do jogo.")
 
     def __str__(self):
         return f"{self.usuario.username} - {self.jogo} ({self.gol_casa}x{self.gol_fora})"

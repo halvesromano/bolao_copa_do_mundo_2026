@@ -139,9 +139,9 @@ class GrupoPrivadoViewSet(viewsets.ModelViewSet):
         usuario_id = request.query_params.get('usuario_id')
         jogo_id = request.query_params.get('jogo_id')
         
-        # Filtrar palpites de jogos cujo prazo de palpite expirou (1 hora antes do jogo) ou já encerrados
+        # Filtrar palpites de jogos cujo prazo de palpite expirou (1 minuto antes do jogo) ou já encerrados
         from django.utils import timezone as tz
-        limite_deadline = tz.now() + tz.timedelta(hours=1)
+        limite_deadline = tz.now() + tz.timedelta(minutes=1)
         palpites = Palpite.objects.filter(
             Q(jogo__encerrado=True) | Q(jogo__data_hora__lt=limite_deadline),
             usuario__in=grupo.membros.all()
@@ -327,12 +327,12 @@ class PalpiteCampeaoViewSet(viewsets.ViewSet):
     """Palpite Bônus — o usuário aposta no campeão da Copa."""
 
     def _get_deadline(self):
-        """Retorna o prazo: 1 hora antes do primeiro jogo cadastrado."""
+        """Retorna o prazo: 1 minuto antes do primeiro jogo cadastrado."""
         from django.utils import timezone as tz
         primeiro_jogo = Jogo.objects.order_by('data_hora').first()
         if not primeiro_jogo:
             return None
-        return primeiro_jogo.data_hora - tz.timedelta(hours=1)
+        return primeiro_jogo.data_hora - tz.timedelta(minutes=1)
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.AllowAny])
     def deadline(self, request):

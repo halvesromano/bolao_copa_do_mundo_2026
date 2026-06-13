@@ -56,9 +56,9 @@ class PalpiteSerializer(serializers.ModelSerializer):
         from django.utils import timezone
         jogo = data.get('jogo')
         if jogo and jogo.data_hora:
-            um_hora_antes = jogo.data_hora - timezone.timedelta(hours=1)
-            if timezone.now() > um_hora_antes:
-                raise serializers.ValidationError("Os palpites devem ser feitos até 1 hora antes do início do jogo.")
+            um_minuto_antes = jogo.data_hora - timezone.timedelta(minutes=1)
+            if timezone.now() > um_minuto_antes:
+                raise serializers.ValidationError("Os palpites devem ser feitos até 1 minuto antes do início do jogo.")
         return data
 
     def create(self, validated_data):

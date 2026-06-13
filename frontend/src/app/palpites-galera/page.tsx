@@ -71,11 +71,11 @@ export default function PalpitesGaleraPage() {
         }
       });
       
-      // Jogos cujos prazos de palpites já expiraram (1 hora antes do jogo) ou encerrados
+      // Jogos cujos prazos de palpites já expiraram (1 minuto antes do jogo) ou encerrados
       api.get(`/jogos/`).then((res) => {
         const agora = Date.now();
         const expiradosOuEncerrados = res.data.filter((j: Jogo) => {
-          const limite = new Date(j.data_hora).getTime() - 3600000;
+          const limite = new Date(j.data_hora).getTime() - 60000;
           return j.encerrado || agora > limite;
         });
         setJogos(expiradosOuEncerrados);
