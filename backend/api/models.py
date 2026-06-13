@@ -50,7 +50,7 @@ class Jogo(models.Model):
                 )
                 if palpite.pontos != pontos:
                     palpite.pontos = pontos
-                    palpite.save()
+                    palpite.save(update_fields=['pontos'])
 
     def __str__(self):
         return f"{self.time_casa} x {self.time_fora} - {self.data_hora.strftime('%d/%m/%Y %H:%M')}"
