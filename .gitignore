@@ -6,3 +6,4 @@ backend/db.sqlite3
 .env.local
 .env.*
 venv/
+backend/staticfiles/
