@@ -88,6 +88,7 @@ export default function PalpitesGaleraPage() {
 
   // 3. Buscar os palpites dependendo do modo
   useEffect(() => {
+    setPalpites([]); // Limpa imediatamente os palpites anteriores para evitar renderização incorreta na transição
     const fetchPalpites = async () => {
       if (!grupoSelecionado) return;
       
@@ -391,9 +392,9 @@ export default function PalpitesGaleraPage() {
                               <>
                                 <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
                                   <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 border border-purple-500/30 shadow-sm">
-                                    {palpite.username.charAt(0).toUpperCase()}
+                                    {palpite.username?.charAt(0).toUpperCase() || "?"}
                                   </div>
-                                  <span className="text-base">{palpite.username}</span>
+                                  <span className="text-base">{palpite.username || "Usuário"}</span>
                                   {user?.id === palpite.usuario_id && <span className="ml-2 text-[10px] bg-wc-cyan/20 text-wc-cyan border border-wc-cyan/30 px-2 py-0.5 rounded-full font-bold">VOCÊ</span>}
                                 </td>
                                 <td className="px-6 py-4 text-slate-300">
