@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TableProperties, Layers } from "lucide-react";
+import { TableProperties, Layers, Trophy } from "lucide-react";
 import api from "@/lib/api";
+import PlayoffBracket, { type PhaseData } from "@/components/PlayoffBracket";
 
 const GRUPOS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
 
@@ -147,11 +148,18 @@ function TabelaGrupo({ dados }: { dados: DadosGrupo }) {
   );
 }
 
+// ─── Main page ────────────────────────────────────────────────────────────────
+type ViewMode = "grupo" | "todos" | "playoffs";
+
 export default function TabelaPage() {
+  const [viewMode, setViewMode] = useState<ViewMode>("grupo");
   const [grupoSelecionado, setGrupoSelecionado] = useState("A");
-  const [viewAll, setViewAll] = useState(false);
   const [cache, setCache] = useState<Record<string, DadosGrupo>>({});
   const [loading, setLoading] = useState(true);
+
+  // Playoff data
+  const [playoffPhases, setPlayoffPhases] = useState<PhaseData[]>([]);
+  const [playoffLoading, setPlayoffLoading] = useState(false);
 
   const fetchGrupo = async (grupo: string): Promise<DadosGrupo | null> => {
     if (cache[grupo]) return cache[grupo];
@@ -165,21 +173,34 @@ export default function TabelaPage() {
     }
   };
 
-  // Carrega o grupo selecionado
+  // Load single group
   useEffect(() => {
-    if (viewAll) return;
+    if (viewMode !== "grupo") return;
     setLoading(true);
     fetchGrupo(grupoSelecionado).finally(() => setLoading(false));
-  }, [grupoSelecionado, viewAll]);
+  }, [grupoSelecionado, viewMode]);
 
-  // Ao entrar no modo "Todos", carrega todos os grupos
+  // Load all groups
   useEffect(() => {
-    if (!viewAll) return;
+    if (viewMode !== "todos") return;
     setLoading(true);
     Promise.all(GRUPOS.map(fetchGrupo)).finally(() => setLoading(false));
-  }, [viewAll]);
+  }, [viewMode]);
 
-  const gruposExibidos = viewAll ? GRUPOS : [grupoSelecionado];
+  // Load playoffs
+  useEffect(() => {
+    if (viewMode !== "playoffs") return;
+    if (playoffPhases.length > 0) return; // already loaded
+    setPlayoffLoading(true);
+    api
+      .get("/playoffs/")
+      .then((res) => setPlayoffPhases(res.data))
+      .catch(console.error)
+      .finally(() => setPlayoffLoading(false));
+  }, [viewMode]);
+
+  const gruposExibidos =
+    viewMode === "todos" ? GRUPOS : viewMode === "grupo" ? [grupoSelecionado] : [];
   const todosCarregados = gruposExibidos.every((g) => !!cache[g]);
 
   return (
@@ -191,31 +212,59 @@ export default function TabelaPage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center justify-center p-3 bg-emerald-500/20 rounded-full mb-4 border border-emerald-500/30 backdrop-blur-sm"
+            className={`inline-flex items-center justify-center p-3 rounded-full mb-4 border backdrop-blur-sm transition-colors duration-300 ${
+              viewMode === "playoffs"
+                ? "bg-yellow-500/20 border-yellow-500/30"
+                : "bg-emerald-500/20 border-emerald-500/30"
+            }`}
           >
-            <TableProperties className="text-emerald-400 w-8 h-8" />
+            {viewMode === "playoffs" ? (
+              <Trophy className="text-yellow-400 w-8 h-8" />
+            ) : (
+              <TableProperties className="text-emerald-400 w-8 h-8" />
+            )}
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-white via-emerald-300 to-emerald-600 tracking-tight"
           >
-            Tabela de Grupos
+            {viewMode === "playoffs" ? "Playoffs" : "Tabela de Grupos"}
           </motion.h1>
           <p className="text-slate-400 mt-2 max-w-lg mx-auto text-sm">
-            Classificação atualizada automaticamente conforme os jogos são encerrados.
+            {viewMode === "playoffs"
+              ? "Chaveamento do mata-mata — atualizado conforme os resultados chegam."
+              : "Classificação atualizada automaticamente conforme os jogos são encerrados."}
           </p>
         </div>
       </header>
 
-      <section className="container mx-auto px-4 max-w-4xl">
-        {/* Seletor de Grupo — mesmo padrão da tela de Jogos */}
+      <section className="container mx-auto px-4 max-w-5xl">
+        {/* ── Navigation bar ── */}
         <div className="flex items-center md:justify-center gap-2 md:gap-3 overflow-x-auto md:flex-wrap pb-4 mb-6 scrollbar-hide snap-x">
-          {/* Botão Todos os Grupos */}
+          {/* Playoffs button */}
           <button
-            onClick={() => setViewAll((v) => !v)}
+            onClick={() => setViewMode("playoffs")}
             className={`snap-start whitespace-nowrap flex items-center gap-1.5 px-5 md:px-6 py-2 rounded-full font-bold transition-all duration-300 border ${
-              viewAll
+              viewMode === "playoffs"
+                ? "bg-gradient-to-r from-yellow-500 to-amber-600 text-black border-transparent shadow-[0_0_16px_rgba(234,179,8,0.45)]"
+                : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-white"
+            }`}
+          >
+            <Trophy className="w-4 h-4" />
+            Playoffs
+          </button>
+
+          {/* Separator */}
+          <span className="text-white/20 font-bold text-lg select-none">|</span>
+
+          {/* All groups button */}
+          <button
+            onClick={() =>
+              setViewMode((v) => (v === "todos" ? "grupo" : "todos"))
+            }
+            className={`snap-start whitespace-nowrap flex items-center gap-1.5 px-5 md:px-6 py-2 rounded-full font-bold transition-all duration-300 border ${
+              viewMode === "todos"
                 ? "bg-gradient-to-r from-wc-cyan to-wc-blue text-black border-transparent shadow-[0_0_15px_rgba(0,188,212,0.5)]"
                 : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-white"
             }`}
@@ -224,16 +273,20 @@ export default function TabelaPage() {
             Todos os Grupos
           </button>
 
-          {/* Separador */}
+          {/* Separator */}
           <span className="text-white/20 font-bold text-lg select-none">|</span>
 
-          {!viewAll &&
+          {/* Individual group buttons — hidden in playoffs mode */}
+          {viewMode !== "playoffs" && viewMode !== "todos" &&
             GRUPOS.map((g) => (
               <button
                 key={g}
-                onClick={() => setGrupoSelecionado(g)}
+                onClick={() => {
+                  setViewMode("grupo");
+                  setGrupoSelecionado(g);
+                }}
                 className={`snap-start whitespace-nowrap px-5 md:px-6 py-2 rounded-full font-bold transition-all duration-300 border ${
-                  grupoSelecionado === g
+                  viewMode === "grupo" && grupoSelecionado === g
                     ? "bg-gradient-to-r from-emerald-500 to-emerald-700 text-white border-transparent shadow-[0_0_15px_rgba(16,185,129,0.4)]"
                     : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-white"
                 }`}
@@ -242,32 +295,69 @@ export default function TabelaPage() {
               </button>
             ))}
 
-          {viewAll && (
+          {viewMode === "todos" && (
             <span className="text-slate-500 text-sm italic whitespace-nowrap">
               Exibindo todos os 12 grupos
             </span>
           )}
+
+          {viewMode === "playoffs" && (
+            <span className="text-slate-500 text-sm italic whitespace-nowrap">
+              Chaveamento completo
+            </span>
+          )}
         </div>
 
-        {/* Legenda */}
-        <div className="flex items-center gap-6 text-xs text-slate-500 mb-4 px-1">
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm bg-emerald-500 inline-block" /> Classificados (1º e 2º)
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm bg-yellow-500 inline-block" /> 3º Lugar (repescagem)
-          </span>
-        </div>
-
-        {/* Tabelas */}
-        {loading && !todosCarregados ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-400">
-            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-            <p>Carregando tabela{viewAll ? "s" : ""}...</p>
+        {/* ── Legend (only for group modes) ── */}
+        {viewMode !== "playoffs" && (
+          <div className="flex items-center gap-6 text-xs text-slate-500 mb-4 px-1">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm bg-emerald-500 inline-block" /> Classificados (1º e 2º)
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm bg-yellow-500 inline-block" /> 3º Lugar (repescagem)
+            </span>
           </div>
-        ) : (
-          <AnimatePresence mode="wait">
-            <div className={viewAll ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "flex flex-col gap-6"}>
+        )}
+
+        {/* ── Content ── */}
+        <AnimatePresence mode="wait">
+          {viewMode === "playoffs" ? (
+            <motion.div
+              key="playoffs"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.3 }}
+            >
+              {playoffLoading ? (
+                <div className="flex flex-col items-center justify-center py-24 gap-4 text-slate-400">
+                  <div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                  <p>Carregando chaveamento...</p>
+                </div>
+              ) : (
+                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-sm shadow-2xl p-4 md:p-6">
+                  <PlayoffBracket phases={playoffPhases} />
+                </div>
+              )}
+            </motion.div>
+          ) : loading && !todosCarregados ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-24 gap-4 text-slate-400"
+            >
+              <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+              <p>Carregando tabela{viewMode === "todos" ? "s" : ""}...</p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="groups"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className={viewMode === "todos" ? "grid grid-cols-1 md:grid-cols-2 gap-6" : "flex flex-col gap-6"}
+            >
               {gruposExibidos.map((g) =>
                 cache[g] ? (
                   <TabelaGrupo key={g} dados={cache[g]} />
@@ -277,9 +367,9 @@ export default function TabelaPage() {
                   </div>
                 )
               )}
-            </div>
-          </AnimatePresence>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
     </div>
   );

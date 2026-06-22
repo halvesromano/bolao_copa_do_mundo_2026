@@ -403,3 +403,38 @@ class PalpiteCampeaoViewSet(viewsets.ViewSet):
             }
         }, status=status.HTTP_200_OK)
 
+
+class PlayoffViewSet(viewsets.ViewSet):
+    """Retorna o chaveamento completo do mata-mata, fase a fase."""
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def list(self, request):
+        # Número esperado de jogos por fase (usado pelo frontend para preencher placeholders)
+        total_esperado_map = {
+            '16 avos de final': 16,
+            'Oitavas de final': 8,
+            'Quartas de final': 4,
+            'Semifinal': 2,
+            'Terceiro Lugar': 1,
+            'Final': 1,
+        }
+
+        fases = Fase.objects.filter(is_mata_mata=True).order_by('ordem')
+        resultado = []
+
+        for fase in fases:
+            jogos = (
+                Jogo.objects
+                .filter(fase=fase)
+                .select_related('time_casa', 'time_fora', 'fase')
+                .order_by('data_hora', 'id')
+            )
+            resultado.append({
+                'id': fase.id,
+                'nome': fase.nome,
+                'ordem': fase.ordem,
+                'total_esperado': total_esperado_map.get(fase.nome, 0),
+                'jogos': JogoSerializer(jogos, many=True).data,
+            })
+
+        return Response(resultado)
