@@ -47,7 +47,7 @@ export function MatchCard({
 }: MatchCardProps) {
   const [golCasa, setGolCasa] = React.useState<number | "">(initialGolCasa ?? "");
   const [golFora, setGolFora] = React.useState<number | "">(initialGolFora ?? "");
-  const isLocked = new Date(dataHora).getTime() - new Date().getTime() <= 60 * 60 * 1000;
+  const isLocked = new Date(dataHora).getTime() - new Date().getTime() <= 60 * 1000;
 
   const handleGolCasaChange = (value: number | "") => {
     if (value !== "" && value < 0) {

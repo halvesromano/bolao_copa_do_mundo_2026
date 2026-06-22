@@ -33,7 +33,7 @@ export default function PalpitesGaleraPage() {
   const [grupos, setGrupos] = useState<Grupo[]>([]);
   const [grupoSelecionado, setGrupoSelecionado] = useState<Grupo | null>(null);
   
-  const [modo, setModo] = useState<"usuario" | "jogo">("usuario");
+  const [modo, setModo] = useState<"usuario" | "jogo" | "bonus">("usuario");
   
   const [usuarios, setUsuarios] = useState<UsuarioRanking[]>([]);
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<number | null>(null);
@@ -93,11 +93,13 @@ export default function PalpitesGaleraPage() {
       
       setLoading(true);
       try {
-        let url = `/grupos/${grupoSelecionado.id}/palpites_galera/?`;
+        let url = "";
         if (modo === "usuario" && usuarioSelecionado) {
-          url += `usuario_id=${usuarioSelecionado}`;
+          url = `/grupos/${grupoSelecionado.id}/palpites_galera/?usuario_id=${usuarioSelecionado}`;
         } else if (modo === "jogo" && jogoSelecionado) {
-          url += `jogo_id=${jogoSelecionado}`;
+          url = `/grupos/${grupoSelecionado.id}/palpites_galera/?jogo_id=${jogoSelecionado}`;
+        } else if (modo === "bonus") {
+          url = `/grupos/${grupoSelecionado.id}/palpites_bonus/`;
         } else {
           setLoading(false);
           return; // Faltando parâmetros
@@ -168,8 +170,8 @@ export default function PalpitesGaleraPage() {
               </div>
             )}
 
-            {/* Alternador de Modo (Usuário / Jogo) */}
-            <div className="flex rounded-xl bg-white/5 border border-white/10 p-1 mb-6 max-w-lg mx-auto">
+            {/* Alternador de Modo (Usuário / Jogo / Bônus) */}
+            <div className="flex rounded-xl bg-white/5 border border-white/10 p-1 mb-6 max-w-2xl mx-auto">
               <button
                 onClick={() => setModo("usuario")}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
@@ -186,52 +188,62 @@ export default function PalpitesGaleraPage() {
               >
                 <Calendar className="w-4 h-4" /> Por Jogo
               </button>
+              <button
+                onClick={() => setModo("bonus")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                  modo === "bonus" ? "bg-amber-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Trophy className="w-4 h-4" /> Palpite Bônus
+              </button>
             </div>
 
             {/* Filtro Secundário (Dropdown de Usuário ou Jogo) */}
-            <div className="mb-8 flex justify-center">
-              {modo === "usuario" && usuarios.length > 0 && (
-                <div className="relative w-full max-w-xs">
-                  <select
-                    className="w-full appearance-none bg-black/50 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
-                    value={usuarioSelecionado || ""}
-                    onChange={(e) => setUsuarioSelecionado(Number(e.target.value))}
-                  >
-                    {usuarios.map(u => (
-                      <option key={u.usuario_id} value={u.usuario_id}>
-                        {u.username} {user?.id === u.usuario_id && "(Você)"}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            {modo !== "bonus" && (
+              <div className="mb-8 flex justify-center">
+                {modo === "usuario" && usuarios.length > 0 && (
+                  <div className="relative w-full max-w-xs">
+                    <select
+                      className="w-full appearance-none bg-black/50 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                      value={usuarioSelecionado || ""}
+                      onChange={(e) => setUsuarioSelecionado(Number(e.target.value))}
+                    >
+                      {usuarios.map(u => (
+                        <option key={u.usuario_id} value={u.usuario_id}>
+                          {u.username} {user?.id === u.usuario_id && "(Você)"}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {modo === "jogo" && jogos.length > 0 && (
-                <div className="relative w-full max-w-sm">
-                  <select
-                    className="w-full appearance-none bg-black/50 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold outline-none focus:border-wc-cyan focus:ring-1 focus:ring-wc-cyan transition-all"
-                    value={jogoSelecionado || ""}
-                    onChange={(e) => setJogoSelecionado(Number(e.target.value))}
-                  >
-                    {jogos.map(j => (
-                      <option key={j.id} value={j.id}>
-                        {j.time_casa.sigla} x {j.time_fora.sigla} ({j.fase.nome})
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                {modo === "jogo" && jogos.length > 0 && (
+                  <div className="relative w-full max-w-sm">
+                    <select
+                      className="w-full appearance-none bg-black/50 border border-white/20 text-white py-3 px-4 rounded-xl font-semibold outline-none focus:border-wc-cyan focus:ring-1 focus:ring-wc-cyan transition-all"
+                      value={jogoSelecionado || ""}
+                      onChange={(e) => setJogoSelecionado(Number(e.target.value))}
+                    >
+                      {jogos.map(j => (
+                        <option key={j.id} value={j.id}>
+                          {j.time_casa.sigla} x {j.time_fora.sigla} ({j.fase.nome})
+                        </option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              {modo === "jogo" && jogos.length === 0 && (
-                <p className="text-slate-400">Nenhum jogo teve o prazo de palpites encerrado ainda.</p>
-              )}
-            </div>
+                )}
+                
+                {modo === "jogo" && jogos.length === 0 && (
+                  <p className="text-slate-400">Nenhum jogo teve o prazo de palpites encerrado ainda.</p>
+                )}
+              </div>
+            )}
 
             {/* Listagem de Palpites */}
             {loading ? (
@@ -245,7 +257,7 @@ export default function PalpitesGaleraPage() {
                   <table className="w-full text-left text-sm whitespace-nowrap">
                     <thead className="bg-black/40 text-slate-400 uppercase text-[10px] font-bold tracking-wider">
                       <tr>
-                        {modo === "usuario" ? (
+                        {modo === "usuario" && (
                           <>
                             <th className="px-6 py-4">Jogo</th>
                             <th className="px-6 py-4">Data / Fase</th>
@@ -254,7 +266,8 @@ export default function PalpitesGaleraPage() {
                             <th className="px-6 py-4 text-center">Placar Real</th>
                             <th className="px-6 py-4 text-center">Pontos</th>
                           </>
-                        ) : (
+                        )}
+                        {modo === "jogo" && (
                           <>
                             <th className="px-6 py-4">Usuário</th>
                             <th className="px-6 py-4 text-center">Palpite</th>
@@ -263,13 +276,20 @@ export default function PalpitesGaleraPage() {
                             <th className="px-6 py-4 text-center">Pontos</th>
                           </>
                         )}
+                        {modo === "bonus" && (
+                          <>
+                            <th className="px-6 py-4">Usuário</th>
+                            <th className="px-6 py-4">Time Campeão</th>
+                            <th className="px-6 py-4 text-center">Pontos Bônus</th>
+                          </>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {palpites.length > 0 ? (
                         palpites.map((palpite) => (
-                          <tr key={palpite.id} className="hover:bg-white/5 transition-colors">
-                            {modo === "usuario" ? (
+                          <tr key={modo === "bonus" ? palpite.usuario_id : palpite.id} className="hover:bg-white/5 transition-colors">
+                            {modo === "usuario" && (
                               <>
                                 <td className="px-6 py-4 font-bold text-white">
                                   <div className="flex items-center gap-3">
@@ -322,7 +342,9 @@ export default function PalpitesGaleraPage() {
                                   )}
                                 </td>
                               </>
-                            ) : (
+                            )}
+
+                            {modo === "jogo" && (
                               <>
                                 <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
                                   <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 border border-purple-500/30 shadow-sm">
@@ -364,11 +386,45 @@ export default function PalpitesGaleraPage() {
                                 </td>
                               </>
                             )}
+
+                            {modo === "bonus" && (
+                              <>
+                                <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 border border-purple-500/30 shadow-sm">
+                                    {palpite.username.charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="text-base">{palpite.username}</span>
+                                  {user?.id === palpite.usuario_id && <span className="ml-2 text-[10px] bg-wc-cyan/20 text-wc-cyan border border-wc-cyan/30 px-2 py-0.5 rounded-full font-bold">VOCÊ</span>}
+                                </td>
+                                <td className="px-6 py-4 text-slate-300">
+                                  {palpite.time ? (
+                                    <div className="flex items-center gap-3">
+                                      <div dangerouslySetInnerHTML={{ __html: palpite.time.bandeira_svg }} className="w-6 h-4 flex items-center justify-center rounded overflow-hidden shadow-sm" />
+                                      <span className="font-semibold text-white">{palpite.time.nome} ({palpite.time.sigla})</span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-slate-500 italic">Sem palpite bônus</span>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 text-center font-black">
+                                  {palpite.time ? (
+                                    <span className={`inline-block px-3 py-1 rounded-full text-xs shadow-sm ${
+                                      palpite.pontos_bonus > 0 ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 font-bold" : 
+                                      "bg-white/5 text-slate-400 border border-white/10"
+                                    }`}>
+                                      +{palpite.pontos_bonus} pts
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-500 font-medium text-xs">—</span>
+                                  )}
+                                </td>
+                              </>
+                            )}
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={modo === "usuario" ? 5 : 4} className="px-6 py-12 text-center text-slate-500 bg-white/5">
+                          <td colSpan={modo === "usuario" ? 6 : modo === "jogo" ? 5 : 3} className="px-6 py-12 text-center text-slate-500 bg-white/5">
                             Nenhum palpite encontrado para esse filtro.
                           </td>
                         </tr>

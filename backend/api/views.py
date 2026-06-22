@@ -161,6 +161,56 @@ class GrupoPrivadoViewSet(viewsets.ModelViewSet):
         serializer = PalpiteSerializer(palpites, many=True)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['get'])
+    def palpites_bonus(self, request, pk=None):
+        """Retorna os palpites bônus (campeão) de todos os membros do grupo."""
+        grupo = self.get_object()
+        
+        # Obter deadline
+        from django.utils import timezone as tz
+        primeiro_jogo = Jogo.objects.order_by('data_hora').first()
+        deadline_passou = False
+        if primeiro_jogo:
+            deadline = primeiro_jogo.data_hora - tz.timedelta(minutes=1)
+            if tz.now() > deadline:
+                deadline_passou = True
+        
+        membros = grupo.membros.all()
+        # Selecionar todos os palpites bônus dos membros
+        palpites_dict = {
+            pb.usuario_id: pb
+            for pb in PalpiteCampeao.objects.filter(usuario__in=membros).select_related('time')
+        }
+        
+        data = []
+        for membro in membros:
+            pb = palpites_dict.get(membro.id)
+            if pb:
+                # Só mostra se for o próprio usuário OU se o prazo já encerrou
+                if deadline_passou or membro == request.user:
+                    data.append({
+                        'usuario_id': membro.id,
+                        'username': membro.username,
+                        'time': TimeSerializer(pb.time).data if pb.time else None,
+                        'pontos_bonus': pb.pontos,
+                    })
+                else:
+                    data.append({
+                        'usuario_id': membro.id,
+                        'username': membro.username,
+                        'time': None,
+                        'pontos_bonus': 0,
+                    })
+            else:
+                data.append({
+                    'usuario_id': membro.id,
+                    'username': membro.username,
+                    'time': None,
+                    'pontos_bonus': 0,
+                })
+        return Response(data)
+
+
 
 class AlterarSenhaView(APIView):
     permission_classes = [permissions.IsAuthenticated]
