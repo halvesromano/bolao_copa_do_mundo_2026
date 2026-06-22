@@ -174,7 +174,7 @@ export default function PalpitesGaleraPage() {
             {/* Alternador de Modo (Usuário / Jogo / Bônus) */}
             <div className="flex rounded-xl bg-white/5 border border-white/10 p-1 mb-6 max-w-2xl mx-auto">
               <button
-                onClick={() => setModo("usuario")}
+                onClick={() => { setModo("usuario"); setPalpites([]); }}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
                   modo === "usuario" ? "bg-purple-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
                 }`}
@@ -182,7 +182,7 @@ export default function PalpitesGaleraPage() {
                 <Users className="w-4 h-4" /> Por Usuário
               </button>
               <button
-                onClick={() => setModo("jogo")}
+                onClick={() => { setModo("jogo"); setPalpites([]); }}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
                   modo === "jogo" ? "bg-wc-cyan text-black shadow-lg" : "text-slate-400 hover:text-white"
                 }`}
@@ -190,7 +190,7 @@ export default function PalpitesGaleraPage() {
                 <Calendar className="w-4 h-4" /> Por Jogo
               </button>
               <button
-                onClick={() => setModo("bonus")}
+                onClick={() => { setModo("bonus"); setPalpites([]); }}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${
                   modo === "bonus" ? "bg-amber-600 text-white shadow-lg" : "text-slate-400 hover:text-white"
                 }`}
@@ -295,20 +295,20 @@ export default function PalpitesGaleraPage() {
                                 <td className="px-6 py-4 font-bold text-white">
                                   <div className="flex items-center gap-3">
                                     <div className="flex items-center gap-2">
-                                      <div dangerouslySetInnerHTML={{ __html: palpite.jogo.time_casa.bandeira_svg }} className="w-6 h-4 flex items-center justify-center rounded overflow-hidden shadow-sm" />
-                                      <span>{palpite.jogo.time_casa.sigla}</span>
+                                      <div dangerouslySetInnerHTML={{ __html: palpite.jogo?.time_casa?.bandeira_svg || "" }} className="w-6 h-4 flex items-center justify-center rounded overflow-hidden shadow-sm" />
+                                      <span>{palpite.jogo?.time_casa?.sigla || ""}</span>
                                     </div>
                                     <span className="text-slate-500 text-[10px] px-1">X</span>
                                     <div className="flex items-center gap-2">
-                                      <div dangerouslySetInnerHTML={{ __html: palpite.jogo.time_fora.bandeira_svg }} className="w-6 h-4 flex items-center justify-center rounded overflow-hidden shadow-sm" />
-                                      <span>{palpite.jogo.time_fora.sigla}</span>
+                                      <div dangerouslySetInnerHTML={{ __html: palpite.jogo?.time_fora?.bandeira_svg || "" }} className="w-6 h-4 flex items-center justify-center rounded overflow-hidden shadow-sm" />
+                                      <span>{palpite.jogo?.time_fora?.sigla || ""}</span>
                                     </div>
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 text-slate-300">
-                                  <div className="font-bold text-[10px] text-wc-cyan uppercase tracking-wider">{palpite.jogo.fase.nome}</div>
+                                  <div className="font-bold text-[10px] text-wc-cyan uppercase tracking-wider">{palpite.jogo?.fase?.nome || ""}</div>
                                   <div className="text-xs text-slate-500 mt-0.5">
-                                    {new Date(palpite.jogo.data_hora).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                    {palpite.jogo?.data_hora ? new Date(palpite.jogo.data_hora).toLocaleDateString("pt-BR", { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : ""}
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 text-center">
@@ -326,11 +326,11 @@ export default function PalpitesGaleraPage() {
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                   <div className="inline-block bg-black/40 px-4 py-2 rounded-xl border border-white/5 font-black text-wc-cyan text-lg tracking-widest opacity-80">
-                                    {palpite.jogo.encerrado ? `${palpite.jogo.gol_casa} - ${palpite.jogo.gol_fora}` : "—"}
+                                    {palpite.jogo?.encerrado ? `${palpite.jogo.gol_casa} - ${palpite.jogo.gol_fora}` : "—"}
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 text-center font-black">
-                                  {palpite.jogo.encerrado ? (
+                                  {palpite.jogo?.encerrado ? (
                                     <span className={`inline-block px-3 py-1 rounded-full text-xs shadow-sm ${
                                       palpite.pontos >= 7 ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30" : 
                                       palpite.pontos > 0 ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : 
@@ -349,10 +349,10 @@ export default function PalpitesGaleraPage() {
                               <>
                                 <td className="px-6 py-4 font-bold text-white flex items-center gap-3">
                                   <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 border border-purple-500/30 shadow-sm">
-                                    {palpite.usuario.username.charAt(0).toUpperCase()}
+                                    {palpite.usuario?.username?.charAt(0).toUpperCase() || "?"}
                                   </div>
-                                  <span className="text-base">{palpite.usuario.username}</span>
-                                  {user?.id === palpite.usuario.id && <span className="ml-2 text-[10px] bg-wc-cyan/20 text-wc-cyan border border-wc-cyan/30 px-2 py-0.5 rounded-full font-bold">VOCÊ</span>}
+                                  <span className="text-base">{palpite.usuario?.username || "Usuário"}</span>
+                                  {user?.id === palpite.usuario?.id && <span className="ml-2 text-[10px] bg-wc-cyan/20 text-wc-cyan border border-wc-cyan/30 px-2 py-0.5 rounded-full font-bold">VOCÊ</span>}
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                   <div className="inline-block bg-black/40 px-4 py-2 rounded-xl border border-white/10 font-black text-white text-lg tracking-widest shadow-inner">
