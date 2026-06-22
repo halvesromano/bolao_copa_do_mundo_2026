@@ -107,6 +107,7 @@ export default function Home() {
 
   const [selectedGroup, setSelectedGroup] = useState("A");
   const [viewAll, setViewAll] = useState(false);
+  const [viewPlayoffs, setViewPlayoffs] = useState(false);
   const [matches, setMatches] = useState<any[]>([]);
   const [palpites, setPalpites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -161,6 +162,7 @@ export default function Home() {
 
   const handleScrollToMatch = (matchId: number, grupoLetra: string) => {
     setViewAll(false);
+    setViewPlayoffs(false);
     setSelectedGroup(grupoLetra);
     setTimeout(() => {
       const el = document.getElementById(`match-${matchId}`);
@@ -174,10 +176,14 @@ export default function Home() {
     }, 150);
   };
 
+  // Helpers para classificar jogos
+  const isGrupoStage = (m: any) => !m.fase?.is_mata_mata && m.fase?.nome?.startsWith("Grupo ");
 
-  // Jogos exibidos conforme o modo (grupo único ou todos)
-  const displayedMatches = viewAll
-    ? matches
+  // Jogos exibidos conforme o modo
+  const displayedMatches = viewPlayoffs
+    ? matches.filter((m) => m.fase?.is_mata_mata)
+    : viewAll
+    ? matches.filter(isGrupoStage)
     : matches.filter((m) => m.fase?.nome === `Grupo ${selectedGroup}`);
 
   const handlePalpite = async (matchId: number, golCasa: number, golFora: number) => {
@@ -366,14 +372,30 @@ export default function Home() {
       </header>
 
 
-      {/* Navegação de Grupos + Toggle "Todos" */}
+      {/* Navegação de Grupos + Toggle "Todos" + Playoffs */}
       <section className="container mx-auto px-4 mt-8">
         <div className="flex items-center md:justify-center gap-2 md:gap-3 overflow-x-auto md:flex-wrap pb-4 scrollbar-hide snap-x">
+          {/* Botão Playoffs */}
+          <button
+            onClick={() => { setViewPlayoffs(true); setViewAll(false); }}
+            className={`snap-start whitespace-nowrap flex items-center gap-1.5 px-5 md:px-6 py-2 rounded-full font-bold transition-all duration-300 border ${
+              viewPlayoffs
+                ? "bg-gradient-to-r from-yellow-500 to-amber-600 text-black border-transparent shadow-[0_0_15px_rgba(234,179,8,0.5)]"
+                : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-white"
+            }`}
+          >
+            <Trophy className="w-4 h-4" />
+            Playoffs
+          </button>
+
+          {/* Separador */}
+          <span className="text-white/20 font-bold text-lg select-none">|</span>
+
           {/* Botão Todos os Grupos */}
           <button
-            onClick={() => setViewAll((v) => !v)}
+            onClick={() => { setViewAll((v) => !v); setViewPlayoffs(false); }}
             className={`snap-start whitespace-nowrap flex items-center gap-1.5 px-5 md:px-6 py-2 rounded-full font-bold transition-all duration-300 border ${
-              viewAll
+              viewAll && !viewPlayoffs
                 ? "bg-gradient-to-r from-wc-cyan to-wc-blue text-black border-transparent shadow-[0_0_15px_rgba(0,188,212,0.5)]"
                 : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-white"
             }`}
@@ -383,15 +405,15 @@ export default function Home() {
           </button>
 
           {/* Separador */}
-          <span className="text-white/20 font-bold text-lg select-none">|</span>
+          {!viewPlayoffs && <span className="text-white/20 font-bold text-lg select-none">|</span>}
 
-          {!viewAll &&
+          {!viewAll && !viewPlayoffs &&
             GRUPOS.map((grupo) => {
               const isSelected = selectedGroup === grupo;
               return (
                 <button
                   key={grupo}
-                  onClick={() => setSelectedGroup(grupo)}
+                  onClick={() => { setSelectedGroup(grupo); setViewAll(false); setViewPlayoffs(false); }}
                   className={`snap-start whitespace-nowrap px-5 md:px-6 py-2 rounded-full font-bold transition-all duration-300 border ${
                     isSelected
                       ? "bg-gradient-to-r from-yellow-500 to-amber-600 text-black border-transparent shadow-[0_0_15px_rgba(234,179,8,0.5)]"
@@ -403,9 +425,15 @@ export default function Home() {
               );
             })}
 
-          {viewAll && (
+          {viewAll && !viewPlayoffs && (
             <span className="text-slate-500 text-sm italic whitespace-nowrap">
-              Exibindo todos os {matches.length} jogos
+              Exibindo todos os jogos da fase de grupos
+            </span>
+          )}
+
+          {viewPlayoffs && (
+            <span className="text-slate-500 text-sm italic whitespace-nowrap">
+              Jogos do mata-mata
             </span>
           )}
         </div>
@@ -425,9 +453,17 @@ export default function Home() {
       {/* Lista de Jogos */}
       <section className="container mx-auto px-4 mt-8 mb-16">
         <div className="flex items-center gap-2 mb-6 text-slate-300">
-          <Calendar className="w-5 h-5 text-wc-cyan" />
+          {viewPlayoffs ? (
+            <Trophy className="w-5 h-5 text-yellow-400" />
+          ) : (
+            <Calendar className="w-5 h-5 text-wc-cyan" />
+          )}
           <h2 className="text-xl font-bold">
-            {viewAll ? "Todos os Jogos da Fase de Grupos" : `Jogos do Grupo ${selectedGroup}`}
+            {viewPlayoffs
+              ? "Jogos do Mata-Mata"
+              : viewAll
+              ? "Todos os Jogos da Fase de Grupos"
+              : `Jogos do Grupo ${selectedGroup}`}
           </h2>
         </div>
 
@@ -442,15 +478,16 @@ export default function Home() {
               {displayedMatches.length > 0 ? (
                 displayedMatches.map((match, index) => {
                   const palpiteFeito = palpites.find((p) => p.jogo.id === match.id);
-                  // Extrai a letra do grupo a partir de "Grupo X"
-                  const grupoLetra = match.fase?.nome?.replace("Grupo ", "");
+                  // grupoLabel só aparece no modo "Todos os Grupos" para jogos de grupo,
+                  // mostrando só a letra (ex: "Gr. A"). Nunca para fases mata-mata.
+                  const isGrupo = isGrupoStage(match);
+                  const grupoLetra = isGrupo ? match.fase?.nome?.replace("Grupo ", "") : null;
                   return (
                     <motion.div
                       key={match.id}
                       id={`match-${match.id}`}
                       layout
                       className="transition-all duration-500 rounded-3xl"
-
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.8 }}
@@ -462,7 +499,7 @@ export default function Home() {
                         timeFora={match.time_fora}
                         dataHora={match.data_hora}
                         fase={match.fase.nome}
-                        grupoLabel={viewAll && grupoLetra ? `Gr. ${grupoLetra}` : undefined}
+                        grupoLabel={viewAll && !viewPlayoffs && grupoLetra ? `Gr. ${grupoLetra}` : undefined}
                         golCasa={palpiteFeito ? palpiteFeito.gol_casa : null}
                         golFora={palpiteFeito ? palpiteFeito.gol_fora : null}
                         encerrado={match.encerrado}
