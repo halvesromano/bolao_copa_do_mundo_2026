@@ -13,9 +13,11 @@ class FaseAdmin(admin.ModelAdmin):
 
 @admin.register(Jogo)
 class JogoAdmin(admin.ModelAdmin):
-    list_display = ('time_casa', 'time_fora', 'data_hora', 'fase', 'gol_casa', 'gol_fora', 'encerrado')
+    list_display = ('time_casa', 'time_fora', 'data_hora', 'fase', 'posicao', 'gol_casa', 'gol_fora', 'encerrado')
     list_filter = ('fase', 'encerrado', 'data_hora')
     search_fields = ('time_casa__nome', 'time_fora__nome')
+    list_editable = ('posicao',)
+    ordering = ('fase__ordem', 'posicao', 'data_hora')
 
 @admin.register(Palpite)
 class PalpiteAdmin(admin.ModelAdmin):

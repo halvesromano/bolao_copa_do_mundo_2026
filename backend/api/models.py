@@ -30,6 +30,10 @@ class Jogo(models.Model):
     gol_casa = models.IntegerField(null=True, blank=True)
     gol_fora = models.IntegerField(null=True, blank=True)
     encerrado = models.BooleanField(default=False)
+    posicao = models.IntegerField(
+        null=True, blank=True,
+        help_text="Posição no chaveamento (ex: 1..16 nos 16 avos). Usado para ordenar o bracket."
+    )
 
     def clean(self):
         if self.time_casa == self.time_fora:

@@ -427,7 +427,7 @@ class PlayoffViewSet(viewsets.ViewSet):
                 Jogo.objects
                 .filter(fase=fase)
                 .select_related('time_casa', 'time_fora', 'fase')
-                .order_by('data_hora', 'id')
+                .order_by('posicao', 'data_hora', 'id')
             )
             resultado.append({
                 'id': fase.id,
